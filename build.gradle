@@ -28,6 +28,14 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.2.6'
     implementation 'org.glassfish.jersey.inject:jersey-hk2:2.26'
     implementation 'io.socket:socket.io-client:1.0.0'
+    implementation 'org.springframework:spring-web:5.3.24'
+    implementation 'org.springframework.boot:spring-boot-starter'
+
+    implementation 'org.glassfish.jersey.media:jersey-media-json-jackson:2.34'
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.10'
+    implementation 'io.swagger.core.v3:swagger-jaxrs2:2.1.10'
+    implementation 'org.webjars:swagger-ui:4.1.0'
+
 
     // To use locally installed jars:
     implementation fileTree(dir: 'lib', include: '*.jar')

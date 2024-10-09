@@ -1,18 +1,23 @@
 package jasonrs.usecases.services;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 
 import jasonrs.configuration.JasonRSMediatorServer;
+import jasonrs.configuration.KnapsackRequest;
+import jasonrs.configuration.KnapsackResponse;
+import org.glassfish.jersey.server.ManagedAsync;
 import org.jdeferred.Deferred;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.DataListener;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -53,6 +58,43 @@ public class TestServices {
 
         server.getBroadcastOperations().sendEvent("bob");
         return "Got it!";
+    }
+
+    @POST
+    @Path("/optimize")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public KnapsackResponse optimize(KnapsackRequest request) {
+        int n = request.getWeights().length;
+        int[][] dp = new int[n + 1][request.getCapacity() + 1];
+
+        for (int i = 0; i <= n; i++) {
+            for (int w = 0; w <= request.getCapacity(); w++) {
+                if (i == 0 || w == 0) {
+                    dp[i][w] = 0;
+                } else if (request.getWeights()[i - 1] <= w) {
+                    dp[i][w] = Math.max(request.getValues()[i - 1] + dp[i - 1][w - request.getWeights()[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+
+        int maxValue = dp[n][request.getCapacity()];
+
+        // Pour trouver les bacs sélectionnés
+        List<Integer> selectedBins = new ArrayList<>();
+        int w = request.getCapacity();
+        for (int i = n; i > 0 && maxValue > 0; i--) {
+            if (maxValue != dp[i - 1][w]) {
+                selectedBins.add(i - 1);
+                maxValue -= request.getValues()[i - 1];
+                w -= request.getWeights()[i - 1];
+            }
+        }
+        System.out.println("Max Value: " + dp[n][request.getCapacity()]);
+        System.out.println("Selected Bins: " + selectedBins);
+        return new KnapsackResponse(dp[n][request.getCapacity()], selectedBins);
     }
 /*
     @POST
